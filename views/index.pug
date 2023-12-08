@@ -1,0 +1,97 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='UTF-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title Marvel API
+
+    style.
+
+      body {
+        margin: 0;
+      }
+
+      #characterName {
+        width: 550px;
+      }
+      #loadMoreButton {
+        margin-bottom: 30px;
+      }
+      #comicsList .comic-item {
+        padding-block: 14px;
+      }
+      
+      #comicsList .comic-item:hover .hq-img {
+        transform: scale(1.1,1.1);
+        opacity: 0.3;
+      }
+
+      .comic-item:hover .card-img-overlay {
+        display:flex !important;
+        background-color: black !important;
+        opacity: 65% !important;
+        transform: scale(1.1,1) !important;
+      }
+
+      #banner {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #f8f9fa;
+        margin-bottom: 20px;
+        border: none;
+      }
+
+      #banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        margin-right: 10px;
+      }
+
+    // Bootstrap CSS via CDN
+    link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', crossorigin='anonymous')
+    link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.css')
+
+  body
+
+    div#page.container.mt-5
+
+      div#banner.container-mt-5
+        img(src="https://cdn.shopify.com/s/files/1/2491/1072/collections/MARVEL_1920x450_b691539a-a0cb-4a43-8d20-ca9d567ab290_1920x450.jpg", alt="", class="img-fluid")
+
+      h1.mb-4 Busque seu Personagem
+
+      form#characterForm
+        .mb-3
+          input#characterName.form-control(type='text' , class='form-control', placeholder='Nome do personagem')
+
+        button(type='button', class='btn btn-danger', onclick='searchCharacter()') Buscar
+        button(type='button', class='btn btn-secondary ms-2', onclick='formReset()') Limpar
+        input(type='hidden', id='characterId')
+
+      #characterInfo.mt-4
+      #comicsList.row
+
+      #loadMoreButton.load-more-button.text-center.mt-5
+        button.btn.btn-secondary Carregar Mais
+
+      script.
+        document.addEventListener('DOMContentLoaded', function() {
+          var loadMoreButton = document.getElementById('loadMoreButton');
+
+          if (loadMoreButton) {
+            loadMoreButton.addEventListener('click', function() {
+              searchComics(true);
+            });
+          }
+        })
+
+    script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js', crossorigin='anonymous')
+
+    script(src='https://code.jquery.com/jquery-3.6.4.min.js', crossorigin='anonymous')
+
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js')
+
+    script(src='../script.js')
