@@ -53,12 +53,10 @@ async function getCharacters(comicId) {
 
             charactersListDiv.append(`
                 <div class="col">
-                    <div class="col-10">
-                        <div class="character-item">
-                            <img class="character-img img-thumbnail rounded-circle img-fluid" src="${getCharacterImageUrl(character)}" alt="${character.name}">
-                        </div>
-                        <h5 class="card-title">${character.name}</h5>
+                    <div class="character-item">
+                        <img class="character-img img-thumbnail rounded-circle img-fluid" src="${getCharacterImageUrl(character)}" alt="${character.name}">
                     </div>
+                    <h5 class="card-title">${character.name}</h5>
                 </div>
             `);
         }
