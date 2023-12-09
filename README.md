@@ -18,6 +18,7 @@
 <br/>
         - Bootstrap
 <br/>
+<br/>
 📚 The Project:
 <br/>
     The project's purpose is reads Marvel's API and consume some funcionalities like:
@@ -29,6 +30,7 @@
     Comics     - GET /v1/public/characters/{characterId}/comics
 <br/>
     Comic      - GET /v1/public/comics/{comicId}
+<br/>
 <br/>
 🔜 What comes next?
 <br/>
