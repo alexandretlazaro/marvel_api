@@ -97,7 +97,7 @@ app.get('/search', async (req, res) => {
 // Função para buscar quadrinhos do personagem
 async function getComics(characterId, offset = 0) {
 	try {
-		const limit = 5; //Ajuste conforme necessário
+		const limit = 5;
 		const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
 		const requestUrl = `${apiUrl}/${characterId}/comics?apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}&limit=${limit}`;
 
@@ -134,10 +134,17 @@ app.get('/teste/:comicId', async (req, res) => {
 
 	try {
 		
+		// Obter o offset da query, se não estiver presente, padrão é 0
+		const offset = parseInt(req.query.offset) || 0;
+		
 		const comicDetails = await getComicById(req.params.comicId);
-
-		res.json(comicDetails);
-
+		const characters = getCharacterByComic(comicDetails.id, offset);
+		
+		res.json({
+			comicDetails: comicDetails,
+			characters: characters
+		});
+		
 	} catch (error) {
 		console.error(error);
       	res.status(500).json({ error: 'Internal Server Error' });
@@ -170,8 +177,55 @@ async function getComicById(comicId) {
 		console.error(error);
 		throw error;
 	}
-
+	
 }
+
+async function getCharacterByComic(comicId, offset = 0) {
+	
+	try {
+		
+		const limit = 5;
+		
+		const apiUrl = 'https://gateway.marvel.com:443/v1/public/comics';
+		const requestUrl = `${apiUrl}/${comicId}/characters?apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}&limit=${limit}`;
+
+		const response = await axios.get(requestUrl);
+
+		return response.data.data.results;
+
+	} catch (error) {
+		console.error(error);
+		throw error;
+		
+	}
+}
+
+app.get('/teste/:comicId/characters', async(req, res) => {
+
+	try {
+
+		const comicId = req.params.comicId;
+		const offset = req.query.offset || 0; //Parâmetro de offset, padrão é 0
+
+		const apiUrl = 'https://gateway.marvel.com:443/v1/public/comics';
+		const requestUrl = `${apiUrl}/${comicId}/characters?apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}`;
+
+		const response = await axios.get(requestUrl);
+		const characters = response.data.data.results.map(character => ({
+			id: character.id,
+			name: character.name,
+			description: character.description,
+			thumbnail: `${character.thumbnail.path}.${character.thumbnail.extension}`,
+		}));
+
+		// Envia os personagens como resposta para o json
+		res.json(characters);
+
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+})
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

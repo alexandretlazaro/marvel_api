@@ -1,9 +1,11 @@
+let offset = 0;
+
 document.addEventListener('DOMContentLoaded', async function() {
 
     console.log('DOMContentLoaded event fired');
 
     // Obtém o comicId da URL
-    const comicId = window.location.pathname.split('/').pop();
+    let comicId = window.location.pathname.split('/').pop();
 
     try {
         // Faz a solicitação para obter os detalhes da HQ
@@ -22,16 +24,51 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-function showComicDetails(comicDetails) {
+function showComicDetails(data) {
 
-    console.log(comicDetails)
+    console.log(data)
     
     const comicDetailsDiv = $('#comicDetails');
     comicDetailsDiv.html(`
-            <h2 class="mb-3">${comicDetails.title}</h2>
-            <p class="lead.mb-4">${comicDetails.text || 'Nenhuma descrição foi encontrada'}</p>
-            <img class="img-fluid" src="${comicDetails.image}">
+            <h2 class="mb-3">${data.comicDetails.title}</h2>
+            <p class="lead.mb-4">${data.comicDetails.text || 'Nenhuma descrição foi encontrada'}</p>
+            <img class="img-fluid" src="${data.comicDetails.image}">
         `);
+
+    getCharacters(data.comicDetails.id);
+}
+
+async function getCharacters(comicId) {
+
+    const charactersListDiv = $('#charactersList');
+
+    const response = await fetch(`/teste/${comicId}/characters`)
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (data.length > 0) {
+        for (const character of data) {
+
+            charactersListDiv.append(`
+                <div class="col">
+                    <div class="col-10">
+                        <div class="character-item">
+                            <img class="character-img img-thumbnail rounded-circle img-fluid" src="${getCharacterImageUrl(character)}" alt="${character.name}">
+                        </div>
+                        <h5 class="card-title">${character.name}</h5>
+                    </div>
+                </div>
+            `);
+        }
+    }
+}
+
+// Função auxiliar para obter a URL da imagem do personagem
+function getCharacterImageUrl(character) {
+    const thumbnail = character.thumbnail;
+    return `${thumbnail}`;
 }
 
 function showError(message) {
