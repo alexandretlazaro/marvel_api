@@ -1,37 +1,47 @@
 🔧 Technologies:
 <br/>
-    Back-End:
 <br/>
-        - Node JS 
+&nbsp;&nbsp;Back-End:
 <br/>
-        - Express
+&nbsp;&nbsp;&nbsp;&nbsp;- Node JS 
 <br/>
-    Container:
+&nbsp;&nbsp;&nbsp;&nbsp;- Express
 <br/>
-        - Docker
+&nbsp;&nbsp;&nbsp;&nbsp;Container:
 <br/>
-    Front-End:
+&nbsp;&nbsp;&nbsp;&nbsp;- Docker
 <br/>
-        - Pug
+&nbsp;&nbsp;&nbsp;&nbsp;Front-End:
 <br/>
-        - Jquery
+&nbsp;&nbsp;&nbsp;&nbsp;- Pug
 <br/>
-        - Bootstrap
+&nbsp;&nbsp;&nbsp;&nbsp;- Jquery
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- Bootstrap
+<br/>
 <br/>
 <br/>
 📚 The Project:
 <br/>
-    The project's purpose is reads Marvel's API and consume some funcionalities like:
+&nbsp;&nbsp;The project's purpose is reads Marvel's API and consume some funcionalities like:
 <br/>
-    Characters - GET /v1/public/characters
 <br/>
-    Character  - GET /v1/public/characters/{characterId}
+&nbsp;&nbsp;&nbsp;&nbsp;Characters          - GET /v1/public/characters
 <br/>
-    Comics     - GET /v1/public/characters/{characterId}/comics
 <br/>
-    Comic      - GET /v1/public/comics/{comicId}
+&nbsp;&nbsp;&nbsp;&nbsp;Character           - GET /v1/public/characters/{characterId}
+<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Character's comics  - GET /v1/public/characters/{characterId}/comics
+<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Character's Comic   - GET /v1/public/comics/{comicId}
+<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Comic's characters  -  GET /v1/public/comics/{comicId}/characters
+<br/>
 <br/>
 <br/>
 🔜 What comes next?
 <br/>
-    Implements link to another heroes in the comics, create events request
+&nbsp;&nbsp;create events request

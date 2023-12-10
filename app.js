@@ -27,6 +27,13 @@ app.get('/comic/:comicId', (req, res) => {
 	res.render('comic', { comicId });
 });
 
+app.get('/character-info/:characterId', (req, res) => {
+
+	const characterId = req.params.characterId;
+
+	res.render('character-info', { characterId });
+});
+
 app.get('/autocomplete', async (req, res) => {
 	
 	const term = req.query.term.toLowerCase();
@@ -48,27 +55,28 @@ app.get('/autocomplete', async (req, res) => {
 
 // Função para buscar informações do personagem
 async function getCharacterInfo(characterName) {
-  try {
-      const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
-      const requestUrl = `${apiUrl}?name=${characterName}&apikey=${publicKey}&ts=${timestamp}&hash=${hash}`;
+ 
+	try {
+		const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
+		const requestUrl = `${apiUrl}?name=${characterName}&apikey=${publicKey}&ts=${timestamp}&hash=${hash}`;
 
-      const response = await axios.get(requestUrl);
-      const character = response.data.data.results[0];
+		const response = await axios.get(requestUrl);
+		const character = response.data.data.results[0];
 
-      if (!character) {
-        throw new Error('Personagem não encontrado');
-      }
+		if (!character) {
+		throw new Error('Personagem não encontrado');
+		}
 
-      return {
-          name: character.name,
-          description: character.description,
-          thumbnail: `${character.thumbnail.path}.${character.thumbnail.extension}`,
-          id: character.id
-      };
-  } catch (error) {
-      console.error(error);
-      throw error;
-  }
+		return {
+			name: character.name,
+			description: character.description,
+			thumbnail: `${character.thumbnail.path}.${character.thumbnail.extension}`,
+			id: character.id
+		};
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
 }
 
 // Endpoint para buscar informações do personagem e quadrinhos
@@ -130,7 +138,8 @@ app.get('/comics/:characterId', async (req, res) => {
   }
 });
 
-app.get('/teste/:comicId', async (req, res) => {
+// Rota para obter o id da HQ ao selecioná-la
+app.get('/hq/:comicId', async (req, res) => {
 
 	try {
 		
@@ -138,7 +147,7 @@ app.get('/teste/:comicId', async (req, res) => {
 		const offset = parseInt(req.query.offset) || 0;
 		
 		const comicDetails = await getComicById(req.params.comicId);
-		const characters = getCharacterByComic(comicDetails.id, offset);
+		const characters = getCharactersByComic(comicDetails.id, offset);
 		
 		res.json({
 			comicDetails: comicDetails,
@@ -180,7 +189,7 @@ async function getComicById(comicId) {
 	
 }
 
-async function getCharacterByComic(comicId, offset = 0) {
+async function getCharactersByComic(comicId, offset = 0) {
 	
 	try {
 		
@@ -200,7 +209,7 @@ async function getCharacterByComic(comicId, offset = 0) {
 	}
 }
 
-app.get('/teste/:comicId/characters', async(req, res) => {
+app.get('/hq/:comicId/characters', async(req, res) => {
 
 	try {
 
@@ -226,6 +235,52 @@ app.get('/teste/:comicId/characters', async(req, res) => {
 		throw error;
 	}
 })
+
+app.get("/character/:characterId", async (req, res) => {
+
+	try {
+
+		const characterId = req.params.characterId;
+
+		const character = await getCharacterById(characterId);
+
+		if(!character) {
+			throw new Error("Personagem não encontrado");
+		}
+
+		res.json({
+			character: character
+		})
+
+
+	} catch (error) {
+		console.error(error);
+		throw error;
+	}
+})
+
+async function getCharacterById(characterId) {
+
+	try {
+		
+		const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
+		const requestUrl = `${apiUrl}/${characterId}?apikey=${publicKey}&ts=${timestamp}&hash=${hash}`;
+
+		const response = await axios.get(requestUrl);
+
+		const characterInfo = response.data.data.results[0];
+
+		return {
+			name: characterInfo.name,
+			description: characterInfo.description,
+			thumbnail: `${characterInfo.thumbnail.path}.${characterInfo.thumbnail.extension}`,
+			id: characterInfo.id
+		};
+
+	} catch (error) {
+		
+	}
+}
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
