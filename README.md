@@ -7,11 +7,11 @@
 <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;- Express
 <br/>
-&nbsp;&nbsp;&nbsp;&nbsp;Container:
+&nbsp;&nbsp;Container:
 <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;- Docker
 <br/>
-&nbsp;&nbsp;&nbsp;&nbsp;Front-End:
+&nbsp;&nbsp;Front-End:
 <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;- Pug
 <br/>
@@ -22,6 +22,7 @@
 <br/>
 <br/>
 📚 The Project:
+<br/>
 <br/>
 &nbsp;&nbsp;The project's purpose is reads Marvel's API and consume some funcionalities like:
 <br/>
@@ -44,4 +45,5 @@
 <br/>
 🔜 What comes next?
 <br/>
-&nbsp;&nbsp;create events request
+<br/>
+&nbsp;&nbsp;- create events request
