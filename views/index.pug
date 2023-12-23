@@ -54,6 +54,7 @@ html(lang='en')
     // Bootstrap CSS via CDN
     link(rel='stylesheet', href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css', crossorigin='anonymous')
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.css')
+    link(rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css' crossorigin='anonymous')
 
   body
 
@@ -64,22 +65,44 @@ html(lang='en')
 
       h1.mb-4 Busque seu Personagem
 
-      form#characterForm
+      form#characterForm.needs-validation(novalidate)
+        .row.mb-3
+          .col-auto
+            .input-group
+              label.input-group-text(for='')
+                i.bi.bi-card-list
+              select#orderBySelect.form-control
+                option(hidden selected value='') Ordenar HQs por:
+                option(value='title') T&iacute;tulo
+                option(value='issueNumber') N&uacute;mero da Edi&ccedil;&atilde;o
+                option(value='focDate') Data de publica&ccedil;&atilde;o
+          .col-auto
+            .input-group
+              label.input-group-text(for='')
+                i.bi.bi-arrow-down-up
+              select#relevanceSelect.form-control
+                option(hidden selected value='') Relevância:
+                option(value='-') 
+                  i.bi.bi-arrow-down
+                    | Mais atuais
+                option(value='') Mais antigas
+        .row.mb-3
+          .col-auto
+            input#characterName.form-control(type='text', placeholder='Nome do personagem' required='')
+            #div-error.d-none.text-danger.small
+                  | Por favor informe o nome de um personagem
         .mb-3
-          input#characterName.form-control(type='text' , class='form-control', placeholder='Nome do personagem')
+          button(type='submit', class='btn btn-danger') Buscar
+          button(type='button', class='btn btn-secondary ms-2', onclick='formReset()') Limpar
+          input(type='hidden', id='characterId')
 
-        button(type='button', class='btn btn-danger', onclick='searchCharacter()') Buscar
-        button(type='button', class='btn btn-secondary ms-2', onclick='formReset()') Limpar
-        input(type='hidden', id='characterId')
+        .alert.alert-danger.alert-dismissible.fade.show(role='alert' style="display: none;")
 
       #characterInfo.mt-4
       #comicsList.row
 
       #loadMoreButton.load-more-button.text-center.mt-5
         button.btn.btn-danger Carregar Mais
-
-      .container.mt-5.text-center
-        a#buttonBack.btn.btn-secondary(href='/') Home Page
 
       script.
         document.addEventListener('DOMContentLoaded', function() {
@@ -94,9 +117,9 @@ html(lang='en')
 
     script(src='https://code.jquery.com/jquery-3.6.4.min.js', crossorigin='anonymous')
     
-    script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js')
-
-    script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js', crossorigin='anonymous')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js', crossorigin='anonymous')
+    
+    script(src='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js', crossorigin='anonymous')
 
     script(src='https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js')
 

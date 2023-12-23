@@ -10,24 +10,19 @@ document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Faz a solicitação para obter os detalhes da HQ
         const response = await fetch(`/hq/${comicId}`);
-        if (!response.ok) {
-            throw new Error(`Erro na solicitação: ${response.status} ${response.statusText}`);
-        }
-        
         const comicDetails = await response.json();
 
         // Chama a função para mostrar os detalhes da HQ
         showComicDetails(comicDetails);
     } catch (error) {
-        console.error('Erro ao obter detalhes da HQ:', error);
-        showError('Erro ao obter detalhes da HQ.');
+        alert(error)
     }
 });
 
 function showComicDetails(data) {
 
     console.log(data)
-    
+
     const comicDetailsDiv = $('#comicDetails');
     comicDetailsDiv.html(`
             <h2 class="mb-3">${data.comicDetails.title}</h2>
@@ -77,8 +72,8 @@ async function searchCharacter(characterName) {
 
         window.location.href = `/character-info/${data.character.id}`
 
-        if (response.status === 505) {
-            showError('Personagem não encontrado.');
+        if (response.status === 404) {
+            showAlert('Personagem não encontrado.');
             return;
         }
 
@@ -87,7 +82,7 @@ async function searchCharacter(characterName) {
         const characterInfoDiv = $('#characterInfo');
         characterInfoDiv.html(`
             <h2>${data.character.name}</h2>
-            <p>${data.character.description || 'Nenhuma descrição disponível.'}</p>
+            <p>${data.character.description || 'Descrição Indisponível.'}</p>
             <img class="img-fluid" src="${data.character.thumbnail}" alt="${data.character.name}">
         `);
 
@@ -169,13 +164,14 @@ function getCharacterImageUrl(character) {
     return `${thumbnail}`;
 }
 
-function showError(message) {
-    const errorDiv = $('#error');
-    errorDiv.text(message);
-    errorDiv.show();
+function showAlert(message) {
+    
+    $(".alert").text(message);
+
+    $(".alert").show();
 
     // Ocultar a mensagem de erro após alguns segundos (opcional)
     setTimeout(() => {
-        errorDiv.hide();
+        $(".alert").fadeOut("slow", "swing", null);
     }, 5000); // 5000 milissegundos = 5 segundos
 }

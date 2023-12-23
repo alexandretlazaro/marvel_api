@@ -11,6 +11,31 @@ $(document).ready(function () {
     $('#loadMoreButton').click(function () {
         searchComics(true);
     });
+
+    $("#orderBySelect").on('change', function() {
+
+        if($( "#orderBySelect option:selected" ).val() === 'title') {
+
+            $('#relevanceSelect option').each(function (index) {
+                if(index === 1) {
+                    $(this).text('A - Z');
+                }
+                if(index === 2) {
+                    $(this).text('Z - A');
+                }
+            });
+        }
+        else {
+            $('#relevanceSelect option').each(function (index) {
+                if(index === 1) {
+                    $(this).text('Mais atuais');
+                }
+                if(index === 2) {
+                    $(this).text('Mais antigas');
+                }
+            });
+        }
+    })
 });
 
 // Variáveis para rastrear o personagem atual e o offset
@@ -18,19 +43,36 @@ let currentCharacterId = '';
 let offset = 0;
 
 async function searchCharacter() {
+
     const characterName = $('#characterName').val();
+    const orderBy = $('#orderBySelect').val();
+    const relevance = $('#relevanceSelect').val();
+
+    if(!characterName) {
+        $('#characterName').addClass('border-danger');
+        $('#div-error').removeClass('d-none');
+        $('#div-error').addClass('d-block');
+        return;
+    }
+    else {
+        $('#characterName').removeClass('border-danger');
+        $('#div-error').removeClass('d-block');
+        $('#div-error').addClass('d-none');
+    }
 
     try {
         // Resetar o offset ao pesquisar um novo personagem
         offset = 0;
 
-        const response = await fetch(`/search?name=${characterName}`);
-        const data = await response.json();
+        const response = await fetch(`/search?name=${characterName}&orderBy=${orderBy}&relevance=${relevance}`);
 
-        if (response.status === 505) {
-            showError('Personagem não encontrado.');
+        if(!response.ok) {
+            const textMessage = await response.text();
+            const parseJson = JSON.parse(textMessage);
+            showAlert(parseJson.error);
             return;
         }
+        const data = await response.json();
 
         console.log('Search Results:', data);
 
@@ -40,7 +82,7 @@ async function searchCharacter() {
                 <h1 class="mb-4">Informações do personagem</h1>
             </div>
             <h2>${data.character.name}</h2>
-            <p>${data.character.description || 'Nenhuma descrição disponível.'}</p>
+            <p>${data.character.description || 'Descrição Indisponível.'}</p>
             <img class="img-fluid" src="${data.character.thumbnail}" alt="${data.character.name}">
         `);
 
@@ -48,13 +90,13 @@ async function searchCharacter() {
         currentCharacterId = data.character.id;
 
         // Chamar searchComics com o novo offset
-        searchComics(false);
+        searchComics(false, orderBy, relevance);
     } catch (error) {
         console.error(error);
     }
 }
 
-async function searchComics(loadMore) {
+async function searchComics(loadMore, orderBy, relevance) {
     try {
         // Incrementar o offset se for uma carga adicional
         if (loadMore) {
@@ -65,7 +107,7 @@ async function searchComics(loadMore) {
             offset = 0;
         }
 
-        const response = await fetch(`/comics/${currentCharacterId}?offset=${offset}`);
+        const response = await fetch(`/comics/${currentCharacterId}?orderBy=${orderBy}&relevance=${relevance}&offset=${offset}`);
         const data = await response.json();
 
         console.log('Comics:', data);
@@ -79,6 +121,17 @@ async function searchComics(loadMore) {
 
         if (data.length > 0) {
             for (const comic of data) {
+                
+                let dateOfPublish = moment(comic.dates[1].date).format('DD-MM-YYYY');
+                let paginas = comic.pageCount;
+
+                if(dateOfPublish === 'Invalid date') {
+                    dateOfPublish = ' - '
+                }
+                if(paginas === 0) {
+                    paginas = ' - '
+                }
+                
                 comicsListDiv.append(`
                     <div class="col">
                         <div class="col-10">
@@ -87,7 +140,9 @@ async function searchComics(loadMore) {
                                     <img class="hq-img" src="${getComicImageUrl(comic)}" alt="${comic.title}">
                                     <div class="card-img-overlay d-none justify-content-center align-items-center flex-column text-center text-white">
                                         <h5 class="card-title text-white">${comic.title}</h5>
-                                        <p class="card-text text-white">${comic.pageCount} páginas</p>
+                                        
+                                        <p class="card-text text-white">Data de publicação: ${dateOfPublish}</p>
+                                        <p class="card-text text-white">Páginas: ${paginas}</p>
                                     </div>
                                 </a>
                             </div>
@@ -137,12 +192,13 @@ function formReset() {
     location.reload();
 }
 
-function showError(message) {
-    const errorDiv = $('#error');
-    errorDiv.text(message);
-    errorDiv.show();
+function showAlert(message) {
+    
+    $(".alert").text(message);
+    $(".alert").show();
 
+    // Ocultar a mensagem de erro após alguns segundos (opcional)
     setTimeout(() => {
-        errorDiv.hide();
-    }, 5000);
+        $(".alert").fadeOut("slow", "swing", null);
+    }, 5000); // 5000 milissegundos = 5 segundos
 }

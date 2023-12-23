@@ -1,4 +1,5 @@
 const express = require('express');
+const createError = require('http-errors');
 const axios = require('axios');
 const md5 = require('md5');
 require('dotenv').config();
@@ -40,13 +41,16 @@ app.get('/autocomplete', async (req, res) => {
 	
 	try {
 
-		const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
-      	const requestUrl = `${apiUrl}?nameStartsWith=${term}&apikey=${publicKey}&ts=${timestamp}&hash=${hash}`;
-
-		const response = await axios.get(requestUrl);
-
-		const suggestions = response.data.data.results.map(character => character.name);
-		res.json(suggestions);
+		if(term) {
+			
+			const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
+			const requestUrl = `${apiUrl}?nameStartsWith=${term}&apikey=${publicKey}&ts=${timestamp}&hash=${hash}`;
+	
+			const response = await axios.get(requestUrl);
+	
+			const suggestions = response.data.data.results.map(character => character.name);
+			res.json(suggestions);
+		}
 	} catch (error) {
 		console.error(error);
 		res.status(500).send('Erro ao obter sugestões de personagens');
@@ -64,7 +68,7 @@ async function getCharacterInfo(characterName) {
 		const character = response.data.data.results[0];
 
 		if (!character) {
-		throw new Error('Personagem não encontrado');
+			return { error: 'Por Asgard! Este personagem não existe' };
 		}
 
 		return {
@@ -81,33 +85,42 @@ async function getCharacterInfo(characterName) {
 
 // Endpoint para buscar informações do personagem e quadrinhos
 app.get('/search', async (req, res) => {
-  try {
-      const characterName = req.query.name;
-      const characterInfo = await getCharacterInfo(characterName);
+	try {
+		const characterName = req.query.name;
+		const orderBy = req.query.orderBy || 'title';
+		const isRelevanceDescending = req.query.relevance;
+		const characterInfo = await getCharacterInfo(characterName);
 
-      // Obter o offset da query, se não estiver presente, padrão é 0
-      const offset = parseInt(req.query.offset) || 0;
+		if(characterInfo.error) {
+			return res.status(404).json({ error: 'Por Asgard! Este personagem não existe' });
+		}
+		
+		// Obter o offset da query, se não estiver presente, padrão é 0
+		const offset = parseInt(req.query.offset) || 0;
 
-      // Obter quadrinhos do personagem com base no offset
-      const comics = await getComics(characterInfo.id, offset);
+		// Obter quadrinhos do personagem com base no offset
+		const comics = await getComics(characterInfo.id, orderBy, isRelevanceDescending, offset);
 
-      // Enviar resposta com informações do personagem e quadrinhos
-      res.json({
-          character: characterInfo,
-          comics: comics
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-  }
+		// Enviar resposta com informações do personagem e quadrinhos
+		res.json({
+			character: characterInfo,
+			comics: comics,
+			orderBy: orderBy,
+			isRelevanceDescending: isRelevanceDescending
+		});
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: 'Internal Server Error' });
+	}
 });
 
 // Função para buscar quadrinhos do personagem
-async function getComics(characterId, offset = 0) {
+async function getComics(characterId, orderBy, isRelevanceDescending, offset = 0) {
 	try {
 		const limit = 5;
 		const apiUrl = 'https://gateway.marvel.com:443/v1/public/characters';
-		const requestUrl = `${apiUrl}/${characterId}/comics?apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}&limit=${limit}`;
+
+		const requestUrl = `${apiUrl}/${characterId}/comics?orderBy=${isRelevanceDescending}${orderBy}&apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}&limit=${limit}`;
 
 		const response = await axios.get(requestUrl);
 
@@ -121,25 +134,30 @@ async function getComics(characterId, offset = 0) {
 
 // Rota para obter quadrinhos de um personagem
 app.get('/comics/:characterId', async (req, res) => {
-  try {
-      const characterId = req.params.characterId;
-      const offset = req.query.offset || 0; //Parâmetro de offset, padrão é 0
+	
+	try {
 
-      const apiUrl = `https://gateway.marvel.com/v1/public/characters/${characterId}/comics?apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}`;
+		const orderBy = req.query.orderBy === 'undefined' ? 'title' : req.query.orderBy === '' ? 'title' : req.query.orderBy;
+	  	const isRelevanceDescending = req.query.relevance === 'undefined' ? '-' : req.query.relevance;
 
-      const response = await axios.get(apiUrl);
-      const comics = response.data.data.results;
+		const characterId = req.params.characterId;
+		const offset = req.query.offset || 0; //Parâmetro de offset, padrão é 0
 
-      // Envia as HQs como resposta para o json
-      res.json(comics);
-  } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-  }
+		const apiUrl = `https://gateway.marvel.com/v1/public/characters/${characterId}/comics?orderBy=${isRelevanceDescending}${orderBy}&apikey=${publicKey}&ts=${timestamp}&hash=${hash}&offset=${offset}`;
+
+		const response = await axios.get(apiUrl);
+		const comics = response.data.data.results;
+
+		// Envia as HQs como resposta para o json
+		res.json(comics);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: 'Internal Server Error' });
+	}
 });
 
 // Rota para obter o id da HQ ao selecioná-la
-app.get('/hq/:comicId', async (req, res) => {
+app.get('/hq/:comicId', async (req, res, next) => {
 
 	try {
 		
@@ -155,8 +173,9 @@ app.get('/hq/:comicId', async (req, res) => {
 		});
 		
 	} catch (error) {
-		console.error(error);
-      	res.status(500).json({ error: 'Internal Server Error' });
+		if (error.response && error.response.status === 404) {
+			return { error: 'Por Asgard! Esta HQ não existe' };
+		}
 	}
 });
 
@@ -168,7 +187,18 @@ async function getComicById(comicId) {
 		const requestUrl = `${apiUrl}/${comicId}?apikey=${publicKey}&ts=${timestamp}&hash=${hash}`;
 
 		const response = await axios.get(requestUrl);
+
 		const comic = response.data.data.results[0];
+		
+		var datePublish = '';
+
+		for (let index = 0; index < comic.dates.length; index++) {
+			const element = comic.dates[index];
+
+			if(element.type === 'focDate') {
+				datePublish = element.date;
+			}
+		}
 
 		if (!comic) {
 			throw new Error('HQ não encontrada');
@@ -178,6 +208,7 @@ async function getComicById(comicId) {
 
 			id: comic.id,
 			title: comic.title,
+			dateOfPublish: datePublish,
 			text: !comic.textObjects[0] ? comic.description : comic.textObjects[0].text,
 			pageCount: comic.pageCount,
 			image: `${comic.images[0].path}.${comic.images[0].extension}`
@@ -281,6 +312,21 @@ async function getCharacterById(characterId) {
 		
 	}
 }
+
+app.use(function(req, res, next) {
+	next(createError(404));
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+	// set locals, only providing error in development
+	res.locals.message = err.message;
+	res.locals.error = err;
+  
+	// render the error page
+	res.status(err.status || 500);
+	res.render('error', {error: err});
+});
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);

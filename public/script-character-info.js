@@ -2,14 +2,42 @@ $(document).ready(function () {
 
     $('#loadMoreButton').hide();
 
-    $('#characterForm').submit(function (event) {
-        event.preventDefault();
-        searchCharacter();
-    });
-
     // Adiciona um evento de clique ao botão "Carregar Mais"
     $('#loadMoreButton').click(function () {
         searchComics(true);
+    });
+
+    $("#orderBySelect").on('change', function() {
+
+        if($( "#orderBySelect option:selected" ).val() === 'title') {
+
+            $('#relevanceSelect option').each(function (index) {
+                if(index === 1) {
+                    $(this).text('A - Z');
+                }
+                if(index === 2) {
+                    $(this).text('Z - A');
+                }
+            });
+        }
+        else {
+            $('#relevanceSelect option').each(function (index) {
+                if(index === 1) {
+                    $(this).text('Mais atuais');
+                }
+                if(index === 2) {
+                    $(this).text('Mais antigas');
+                }
+            });
+        }
+    })
+
+    $("#relevanceSelect").on('change', function() {
+
+        var orderBySelected = $( "#orderBySelect option:selected" ).val();
+        var relevanceSelected = $( "#relevanceSelect option:selected" ).val();
+
+        searchComics(false, orderBySelected, relevanceSelected);
     });
 });
 
@@ -48,7 +76,7 @@ function showCharacterInfo(data) {
     const characterInfoDiv = $('#characterInfo');
     characterInfoDiv.html(`
         <h2>${data.character.name}</h2>
-        <p>${data.character.description || 'Nenhuma descrição disponível.'}</p>
+        <p>${data.character.description || 'Descrição Indisponível.'}</p>
         <img class="img-fluid" src="${data.character.thumbnail}" alt="${data.character.name}">
     `);
 
@@ -59,7 +87,7 @@ function showCharacterInfo(data) {
     searchComics(false);
 }
 
-async function searchComics(loadMore) {
+async function searchComics(loadMore, orderBy, relevance) {
     try {
 
         // Incrementar o offset se for uma carga adicional
@@ -71,7 +99,7 @@ async function searchComics(loadMore) {
             offset = 0;
         }
 
-        const response = await fetch(`/comics/${currentCharacterId}?offset=${offset}`);
+        const response = await fetch(`/comics/${currentCharacterId}?orderBy=${orderBy}&relevance=${relevance}&offset=${offset}`);
         const data = await response.json();
 
         console.log('Comics:', data);
@@ -85,6 +113,17 @@ async function searchComics(loadMore) {
 
         if (data.length > 0) {
             for (const comic of data) {
+
+                let dateOfPublish = moment(comic.dates[1].date).format('DD-MM-YYYY');
+                let paginas = comic.pageCount;
+
+                if(dateOfPublish === 'Invalid date') {
+                    dateOfPublish = ' - '
+                }
+                if(paginas === 0) {
+                    paginas = ' - '
+                }
+
                 comicsListDiv.append(`
                     <div class="col">
                         <div class="col-10">
@@ -93,7 +132,8 @@ async function searchComics(loadMore) {
                                     <img class="hq-img" src="${getComicImageUrl(comic)}" alt="${comic.title}">
                                     <div class="card-img-overlay d-none justify-content-center align-items-center flex-column text-center text-white">
                                         <h5 class="card-title text-white">${comic.title}</h5>
-                                        <p class="card-text text-white">${comic.pageCount} páginas</p>
+                                        <p class="card-text text-white">Data de publicação: ${dateOfPublish}</p>
+                                        <p class="card-text text-white">Páginas: ${paginas}</p>
                                     </div>
                                 </a>
                             </div>
@@ -122,6 +162,10 @@ function getComicImageUrl(comic) {
     return `${thumbnail.path}/standard_fantastic.${thumbnail.extension}`;
 }
 
+function formReset() {
+    $('#characterForm').trigger("reset");
+    location.reload();
+}
 
 function showError(message) {
     const errorDiv = $('#error');
